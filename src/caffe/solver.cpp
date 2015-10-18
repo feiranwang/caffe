@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "hdf5.h"
 #include "hdf5_hl.h"
@@ -211,7 +212,7 @@ void Solver<Dtype>::Step(int iters) {
     if (param_.test_interval() && iter_ % param_.test_interval() == 0
         && (iter_ > 0 || param_.test_initialization())
         && Caffe::root_solver()) {
-      TestAll();
+      // TestAll();
       if (requested_early_exit_) {
         // Break out of the while loop because stop was requested while testing.
         break;
@@ -321,14 +322,14 @@ void Solver<Dtype>::Solve(const char* resume_file) {
   // training, for the train net we only run a forward pass as we've already
   // updated the parameters "max_iter" times -- this final pass is only done to
   // display the loss, which is computed in the forward pass.
-  if (param_.display() && iter_ % param_.display() == 0) {
-    Dtype loss;
-    net_->ForwardPrefilled(&loss);
-    LOG(INFO) << "Iteration " << iter_ << ", loss = " << loss;
-  }
-  if (param_.test_interval() && iter_ % param_.test_interval() == 0) {
-    TestAll();
-  }
+  // if (param_.display() && iter_ % param_.display() == 0) {
+  //   Dtype loss;
+  //   net_->ForwardPrefilled(&loss);
+  //   LOG(INFO) << "Iteration " << iter_ << ", loss = " << loss;
+  // }
+  // if (param_.test_interval() && iter_ % param_.test_interval() == 0) {
+  //   TestAll();
+  // }
   LOG(INFO) << "Optimization Done.";
 }
 

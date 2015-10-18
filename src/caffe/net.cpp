@@ -8,6 +8,8 @@
 #include "hdf5.h"
 
 #include "caffe/common.hpp"
+#include <iostream>
+#include <fstream>
 #include "caffe/layer.hpp"
 #include "caffe/net.hpp"
 #include "caffe/parallel.hpp"
@@ -595,7 +597,21 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
     }
   }
   for (int i = start; i <= end; ++i) {
-    // LOG(ERROR) << "Forwarding " << layer_names_[i];
+    std::string mode   = std::getenv("MODE");
+    // STEFAN HACK: I am checking if we are at the last layer and if so then
+    // I am setting a flag in a file. THis is not needed once there is a proper
+    // communciation layer in Caffe.
+    if (i == end - 1) {
+        std::string folder = std::getenv("FOLDER");
+        std::ofstream check_last_layer_file;
+        check_last_layer_file.open ((folder + "/last_layer_flag.txt").c_str());
+        check_last_layer_file << "1";
+        check_last_layer_file.close();
+    }
+    // Also skip the last layer
+    else if (mode != "caffe" && i == end) {
+        continue;
+    }
     Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
     loss += layer_loss;
     if (debug_info_) { ForwardDebugInfo(i); }
@@ -659,6 +675,13 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
   CHECK_GE(end, 0);
   CHECK_LT(start, layers_.size());
   for (int i = start; i >= end; --i) {
+    // FEIRAN HACK:
+    // Skip backwards for the last layer, since it is the softmax
+    std::string mode   = std::getenv("MODE");
+    if (mode != "caffe" && i == start) {
+      continue;
+    }
+
     if (layer_need_backward_[i]) {
       layers_[i]->Backward(
           top_vecs_[i], bottom_need_backward_[i], bottom_vecs_[i]);

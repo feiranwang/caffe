@@ -386,6 +386,24 @@ int main(int argc, char** argv) {
       "  test            score a model\n"
       "  device_query    show GPU diagnostic information\n"
       "  time            benchmark model execution time");
+
+  // FEIRAN HACK: initialize flag file and current image file here
+  // STEFAN HACK: Initialize all those files here
+  std::string folder = std::getenv("FOLDER");
+  std::ofstream current_img_file;
+  current_img_file.open ((folder + "/current_img.txt").c_str());
+  current_img_file << "0";
+  current_img_file.close();
+  std::ofstream check_last_layer_file;
+  check_last_layer_file.open ((folder + "/last_layer_flag.txt").c_str());
+  check_last_layer_file << "0";
+  check_last_layer_file.close();
+
+  std::ofstream first_run_file;
+  first_run_file.open ((folder + "/first_run_file.txt").c_str());
+  first_run_file << "1";
+  first_run_file.close();
+
   // Run tool or show usage.
   caffe::GlobalInit(&argc, &argv);
   if (argc == 2) {
