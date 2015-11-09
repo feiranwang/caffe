@@ -8,6 +8,15 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
 
+#include "../../ddf/src/message.h"
+
+#include <zmq.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <assert.h>
+
+
 namespace caffe {
 
 template <typename Dtype>
@@ -51,10 +60,35 @@ template <typename Dtype>
 void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
   Dtype accuracy = 0;
+
   const Dtype* bottom_data = bottom[0]->cpu_data();
   const Dtype* bottom_label = bottom[1]->cpu_data();
+  const Dtype* imgids = bottom[2]->cpu_data();
   const int dim = bottom[0]->count() / outer_num_;
   const int num_labels = bottom[0]->shape(label_axis_);
+
+
+  FusionMessage * x = reinterpret_cast<FusionMessage*>(buf);
+  x->msg_type = REQUEST_ACCURACY;
+  x->nelem = bottom[0]->count();
+  x->batch = outer_num_;
+
+  assert(outer_num_ < 256);
+  for(int i=0;i<outer_num_;i++){
+    x->imgids[i] = imgids[i];
+    x->labels[i] = bottom_label[i];
+  }
+
+  for(int i=0;i<bottom[0]->count();i++){
+    x->content[i] = bottom_data[i];
+  }
+
+  // printf ("Sending...\n");
+  zmq_send (requester, x, x->size(), 0);
+  zmq_recv (requester, x, x->size(), 0);
+  // printf ("Received...\n");
+  
+
   vector<Dtype> maxval(top_k_+1);
   vector<int> max_id(top_k_+1);
   if (top.size() > 1) {

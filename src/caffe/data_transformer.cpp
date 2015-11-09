@@ -41,6 +41,7 @@ DataTransformer<Dtype>::DataTransformer(const TransformationParameter& param,
 template<typename Dtype>
 void DataTransformer<Dtype>::Transform(const Datum& datum,
                                        Dtype* transformed_data) {
+
   const string& data = datum.data();
   const int datum_channels = datum.channels();
   const int datum_height = datum.height();
@@ -109,6 +110,11 @@ void DataTransformer<Dtype>::Transform(const Datum& datum,
             static_cast<Dtype>(static_cast<uint8_t>(data[data_index]));
         } else {
           datum_element = datum.float_data(data_index);
+        }
+        if(datum_element >=0 && datum_element <= 255){
+
+        }else{
+          std::cout << "." << datum_element << "." << std::endl;
         }
         if (has_mean_file) {
           transformed_data[top_index] =

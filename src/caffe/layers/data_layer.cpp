@@ -29,9 +29,13 @@ DataLayer<Dtype>::~DataLayer() {
 template <typename Dtype>
 void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
+
+  // std::cout << "!!!!!!!!!!!!! 1111111111111" << std::endl;
   const int batch_size = this->layer_param_.data_param().batch_size();
   // Read a data point, and use it to initialize the top blob.
   Datum& datum = *(reader_.full().peek());
+
+  // std::cout << "!!!!!!!!!!!!! 3333333333333" << std::endl;
 
   // Use data_transformer to infer the expected blob shape from datum.
   vector<int> top_shape = this->data_transformer_->InferBlobShape(datum);
@@ -42,9 +46,15 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
     this->prefetch_[i].data_.Reshape(top_shape);
   }
+
+  // std::cout << "!!!!!!!!!!!!! 4444444444444444444" << std::endl;
+
   LOG(INFO) << "output data size: " << top[0]->num() << ","
       << top[0]->channels() << "," << top[0]->height() << ","
       << top[0]->width();
+
+  // std::cout << "!!!!!!!!!!!!! 555555555555555555" << std::endl;
+
   // label
   if (this->output_labels_) {
     vector<int> label_shape(1, batch_size);
@@ -53,6 +63,8 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       this->prefetch_[i].label_.Reshape(label_shape);
     }
   }
+
+  // std::cout << "!!!!!!!!!!!!! 2222222222222" << std::endl;
 }
 
 // This function is called on prefetch thread
@@ -97,6 +109,10 @@ void DataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     if (this->output_labels_) {
       top_label[item_id] = datum.label();
     }
+    batch->imgids[item_id] = datum.imgid();
+    
+    //std::cout << "IMGID   " << batch->imgids[item_id] << std::endl;
+    
     trans_time += timer.MicroSeconds();
 
     reader_.free().push(const_cast<Datum*>(&datum));

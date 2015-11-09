@@ -11,6 +11,12 @@
 #include "caffe/neuron_layers.hpp"
 #include "caffe/proto/caffe.pb.h"
 
+#include <zmq.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <assert.h>
+
 namespace caffe {
 
 const float kLOG_THRESHOLD = 1e-20;
@@ -31,19 +37,36 @@ class AccuracyLayer : public Layer<Dtype> {
    *     correct if the correct label is among the top 5 predicted labels.
    */
   explicit AccuracyLayer(const LayerParameter& param)
-      : Layer<Dtype>(param) {}
+      : Layer<Dtype>(param) {
+
+    printf ("Connecting to the sampler server...\n");
+    context = zmq_ctx_new ();
+    requester = zmq_socket (context, ZMQ_REQ);
+    char *port = getenv ("PORT");
+    zmq_connect (requester, (std::string("tcp://localhost:") + std::string(port)).c_str());
+
+    buf = new char[1000*300*sizeof(float)];
+
+  }
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "Accuracy"; }
-  virtual inline int ExactNumBottomBlobs() const { return 2; }
+  virtual inline int ExactNumBottomBlobs() const { return 3; }
 
   // If there are two top blobs, then the second blob will contain
   // accuracies per class.
   virtual inline int MinTopBlobs() const { return 1; }
   virtual inline int MaxTopBlos() const { return 2; }
+
+  void *context;
+
+  void *requester;
+
+  char *buf;
+
 
  protected:
   /**
@@ -112,7 +135,7 @@ class LossLayer : public Layer<Dtype> {
   virtual void Reshape(
       const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top);
 
-  virtual inline int ExactNumBottomBlobs() const { return 2; }
+  virtual inline int ExactNumBottomBlobs() const { return 3; } // last bottom is IMGID
 
   /**
    * @brief For convenience and backwards compatibility, instruct the Net to
@@ -700,7 +723,25 @@ class SoftmaxWithLossLayer : public LossLayer<Dtype> {
     *    present; otherwise the loss is simply summed over spatial locations.
     */
   explicit SoftmaxWithLossLayer(const LayerParameter& param)
-      : LossLayer<Dtype>(param) {}
+      : LossLayer<Dtype>(param) {
+
+    printf ("Connecting to the sampler server...\n");
+    context = zmq_ctx_new ();
+    requester = zmq_socket (context, ZMQ_REQ);
+    // zmq_connect (requester, "tcp://localhost:5555");
+    char *port = getenv ("PORT");
+    zmq_connect (requester, (std::string("tcp://localhost:") + std::string(port)).c_str());
+
+    buf = new char[1000*300*sizeof(float)];
+
+  }
+
+  void *context;
+
+  void *requester;
+
+  char *buf;
+
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,

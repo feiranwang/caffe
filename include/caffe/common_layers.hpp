@@ -13,6 +13,16 @@
 #include "caffe/neuron_layers.hpp"
 #include "caffe/proto/caffe.pb.h"
 
+#include "../ddf/src/message.h"
+
+#include <zmq.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <assert.h>
+
+
+
 namespace caffe {
 
 /**
@@ -597,7 +607,12 @@ template <typename Dtype>
 class SoftmaxLayer : public Layer<Dtype> {
  public:
   explicit SoftmaxLayer(const LayerParameter& param)
-      : Layer<Dtype>(param) {}
+      : Layer<Dtype>(param) {
+
+    //std::cout << "#######CONSTRUCTOR############" << std::endl;
+    //std::cout << this->bottom[0]->count(0, softmax_axis_) << std::endl;
+    //std::cout << this->bottom[0]->count(softmax_axis_ + 1) << std::endl;
+  }
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
 
@@ -622,6 +637,8 @@ class SoftmaxLayer : public Layer<Dtype> {
   Blob<Dtype> sum_multiplier_;
   /// scale is an intermediate Blob to hold temporary results.
   Blob<Dtype> scale_;
+
+
 };
 
 #ifdef USE_CUDNN

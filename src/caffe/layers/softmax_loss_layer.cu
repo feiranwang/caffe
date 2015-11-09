@@ -6,6 +6,15 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
 
+#include "../../ddf/src/message.h"
+
+#include <zmq.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <assert.h>
+
+
 namespace caffe {
 
 template <typename Dtype>
@@ -50,6 +59,7 @@ void SoftmaxWithLossLayer<Dtype>::Forward_gpu(
       outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
   Dtype loss;
   caffe_gpu_asum(nthreads, loss_data, &loss);
+
   if (normalize_) {
     Dtype count;
     caffe_gpu_asum(nthreads, counts, &count);
@@ -95,12 +105,59 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
                << " Layer cannot backpropagate to label inputs.";
   }
   if (propagate_down[0]) {
+
+    Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
+    const Dtype* prob_data = prob_.cpu_data();
+    const Dtype* top_data = top[0]->gpu_data();
+    
+    caffe_copy(prob_.count(), prob_data, bottom_diff);
+
+    const Dtype* label = bottom[1]->cpu_data();
+    const Dtype* imgids = bottom[2]->cpu_data();
+    const Dtype *bottom_data = bottom[0]->cpu_data();
+
+    //int count = outer_num_;
+    FusionMessage * x = reinterpret_cast<FusionMessage*>(buf);
+    x->msg_type = REQUEST_GRAD;
+    x->nelem = prob_.count();
+    x->batch = outer_num_;
+
+    // assert(outer_num_ < 256);
+    for(int i=0;i<outer_num_;i++){
+      x->imgids[i] = imgids[i];
+      x->labels[i] = label[i];
+    }
+
+    for(int i=0;i<prob_.count();i++){
+      x->content[i] = bottom_data[i];
+      // LOG(INFO) << "data=" << bottom_data[i];
+    }
+
+    // printf ("Sending...\n");
+    zmq_send (requester, x, x->size(), 0);
+    zmq_recv (requester, x, x->size(), 0);
+    // printf ("Received...\n");
+    
+    for (int i=0; i < prob_.count(); i++) {
+      bottom_diff[i] = x->content[i];
+    }
+
+    caffe_gpu_memcpy(prob_.count()*sizeof(Dtype), bottom_diff, bottom[0]->mutable_gpu_diff());
+    
+    /*
+    std::cout << "~~~~~I AM ON THE GPU!!!!!" << std::endl;
+
+
     Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
     const Dtype* prob_data = prob_.gpu_data();
     const Dtype* top_data = top[0]->gpu_data();
-    caffe_gpu_memcpy(prob_.count() * sizeof(Dtype), prob_data, bottom_diff);
+    
+    caffe_copy(prob_.count(), prob_data, bottom_diff);
+
     const Dtype* label = bottom[1]->gpu_data();
     const int dim = prob_.count() / outer_num_;
+    const Dtype* imgids = bottom[2]->gpu_data();
+
     const int nthreads = outer_num_ * inner_num_;
     // Since this memory is never used for anything else,
     // we use to to avoid allocating new GPU memory.
@@ -117,6 +174,8 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     } else {
       caffe_gpu_scal(prob_.count(), loss_weight / outer_num_, bottom_diff);
     }
+    */
+
   }
 }
 

@@ -66,11 +66,17 @@ class Layer {
    */
   void SetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
+    // std::cout << "11111111111" << std::endl;
     InitMutex();
+    // std::cout << "22222222222" << std::endl;
     CheckBlobCounts(bottom, top);
+    // std::cout << "33333333333" << std::endl;
     LayerSetUp(bottom, top);
+    // std::cout << "44444444444" << std::endl;
     Reshape(bottom, top);
+    // std::cout << "55555555555" << std::endl;
     SetLossWeights(top);
+    // std::cout << "66666666666" << std::endl;
   }
 
   /**
@@ -395,11 +401,11 @@ class Layer {
           << type() << " Layer produces at least " << MinTopBlobs()
           << " top blob(s) as output.";
     }
-    if (MaxTopBlobs() >= 0) {
-      CHECK_GE(MaxTopBlobs(), top.size())
-          << type() << " Layer produces at most " << MaxTopBlobs()
-          << " top blob(s) as output.";
-    }
+    //if (MaxTopBlobs() >= 0) {
+    //  CHECK_GE(MaxTopBlobs(), top.size())
+    //      << type() << " Layer produces at most " << MaxTopBlobs()
+    //      << " top blob(s) as output.";
+    //}
     if (EqualNumBottomTopBlobs()) {
       CHECK_EQ(bottom.size(), top.size())
           << type() << " Layer produces one top blob as output for each "

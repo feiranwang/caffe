@@ -115,7 +115,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
       // If a blob needs backward, this layer should provide it.
       need_backward |= blob_need_backward_[blob_id];
     }
-    int num_top = layer_param.top_size();
+    int num_top = layer_param.top_size();  //// CE CHANGE
     for (int top_id = 0; top_id < num_top; ++top_id) {
       AppendTop(param, layer_id, top_id, &available_blobs, &blob_name_to_idx);
     }
@@ -126,6 +126,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
     if (layer->AutoTopBlobs()) {
       const int needed_num_top =
           std::max(layer->MinTopBlobs(), layer->ExactNumTopBlobs());
+      // std::cout << num_top << "     " << needed_num_top << std::endl;
       for (; num_top < needed_num_top; ++num_top) {
         // Add "anonymous" top blobs -- do not modify available_blobs or
         // blob_name_to_idx as we don't want these blobs to be usable as input
@@ -147,6 +148,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
     } else {
       layers_[layer_id]->SetUp(bottom_vecs_[layer_id], top_vecs_[layer_id]);
     }
+
     LOG_IF(INFO, Caffe::root_solver())
         << "Setting up " << layer_names_[layer_id];
     for (int top_id = 0; top_id < top_vecs_[layer_id].size(); ++top_id) {
@@ -433,7 +435,10 @@ void Net<Dtype>::AppendTop(const NetParameter& param, const int layer_id,
       net_input_blobs_.push_back(blob_pointer.get());
     } else {
       top_id_vecs_[layer_id].push_back(blob_id);
+
+      // std::cout << top_vecs_[layer_id].size() << std::endl;
       top_vecs_[layer_id].push_back(blob_pointer.get());
+      //std::cout << layer_id << "~~~~~~~" << top_vecs_[layer_id].size() << std::endl;
     }
   }
   if (available_blobs) { available_blobs->insert(blob_name); }

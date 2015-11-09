@@ -56,6 +56,7 @@ template <typename Dtype>
 class Batch {
  public:
   Blob<Dtype> data_, label_;
+  Dtype imgids[1000];
 };
 
 template <typename Dtype>

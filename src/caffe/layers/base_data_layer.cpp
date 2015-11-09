@@ -26,7 +26,9 @@ void BaseDataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       new DataTransformer<Dtype>(transform_param_, this->phase_));
   data_transformer_->InitRand();
   // The subclasses should setup the size of bottom and top
+  // std::cout << "999999999999" << std::endl;
   DataLayerSetUp(bottom, top);
+  // std::cout << "101010101010" << std::endl;
 }
 
 template <typename Dtype>
@@ -116,6 +118,11 @@ void BasePrefetchingDataLayer<Dtype>::Forward_cpu(
     // Copy the labels.
     caffe_copy(batch->label_.count(), batch->label_.cpu_data(),
         top[1]->mutable_cpu_data());
+
+    // Second is the imgids.
+    top[2]->ReshapeLike(batch->label_);
+    caffe_copy(batch->label_.count(), batch->imgids,
+      top[2]->mutable_cpu_data());
   }
 
   prefetch_free_.push(batch);
