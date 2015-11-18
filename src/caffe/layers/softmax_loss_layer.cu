@@ -6,7 +6,7 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
 
-#include "../../ddf/src/message.h"
+#include "caffe/message.h"
 
 #include <zmq.h>
 #include <stdio.h>
@@ -116,7 +116,7 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const Dtype* imgids = bottom[2]->cpu_data();
     const Dtype *bottom_data = bottom[0]->cpu_data();
 
-    //int count = outer_num_;
+    // //int count = outer_num_;
     FusionMessage * x = reinterpret_cast<FusionMessage*>(buf);
     x->msg_type = REQUEST_GRAD;
     x->nelem = prob_.count();
@@ -144,37 +144,30 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 
     caffe_gpu_memcpy(prob_.count()*sizeof(Dtype), bottom_diff, bottom[0]->mutable_gpu_diff());
     
-    /*
-    std::cout << "~~~~~I AM ON THE GPU!!!!!" << std::endl;
-
-
-    Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
-    const Dtype* prob_data = prob_.gpu_data();
-    const Dtype* top_data = top[0]->gpu_data();
-    
-    caffe_copy(prob_.count(), prob_data, bottom_diff);
-
-    const Dtype* label = bottom[1]->gpu_data();
-    const int dim = prob_.count() / outer_num_;
-    const Dtype* imgids = bottom[2]->gpu_data();
-
-    const int nthreads = outer_num_ * inner_num_;
-    // Since this memory is never used for anything else,
-    // we use to to avoid allocating new GPU memory.
-    Dtype* counts = prob_.mutable_gpu_diff();
-    // NOLINT_NEXT_LINE(whitespace/operators)
-    SoftmaxLossBackwardGPU<Dtype><<<CAFFE_GET_BLOCKS(nthreads),
-        CAFFE_CUDA_NUM_THREADS>>>(nthreads, top_data, label, bottom_diff,
-        outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
-    const Dtype loss_weight = top[0]->cpu_diff()[0];
-    if (normalize_) {
-      Dtype count;
-      caffe_gpu_asum(nthreads, counts, &count);
-      caffe_gpu_scal(prob_.count(), loss_weight / count, bottom_diff);
-    } else {
-      caffe_gpu_scal(prob_.count(), loss_weight / outer_num_, bottom_diff);
-    }
-    */
+    // if (propagate_down[0]) {
+    //   Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
+    //   const Dtype* prob_data = prob_.gpu_data();
+    //   const Dtype* top_data = top[0]->gpu_data();
+    //   caffe_gpu_memcpy(prob_.count() * sizeof(Dtype), prob_data, bottom_diff);
+    //   const Dtype* label = bottom[1]->gpu_data();
+    //   const int dim = prob_.count() / outer_num_;
+    //   const int nthreads = outer_num_ * inner_num_;
+    //   // Since this memory is never used for anything else,
+    //   // we use to to avoid allocating new GPU memory.
+    //   Dtype* counts = prob_.mutable_gpu_diff();
+    //   // NOLINT_NEXT_LINE(whitespace/operators)
+    //   SoftmaxLossBackwardGPU<Dtype><<<CAFFE_GET_BLOCKS(nthreads),
+    //       CAFFE_CUDA_NUM_THREADS>>>(nthreads, top_data, label, bottom_diff,
+    //       outer_num_, dim, inner_num_, has_ignore_label_, ignore_label_, counts);
+    //   const Dtype loss_weight = top[0]->cpu_diff()[0];
+    //   if (normalize_) {
+    //     Dtype count;
+    //     caffe_gpu_asum(nthreads, counts, &count);
+    //     caffe_gpu_scal(prob_.count(), loss_weight / count, bottom_diff);
+    //   } else {
+    //     caffe_gpu_scal(prob_.count(), loss_weight / outer_num_, bottom_diff);
+    //   }
+    // }
 
   }
 }

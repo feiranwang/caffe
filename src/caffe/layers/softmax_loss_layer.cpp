@@ -7,7 +7,7 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
 
-#include "../../ddf/src/message.h"
+#include "caffe/message.h"
 
 #include <zmq.h>
 #include <stdio.h>

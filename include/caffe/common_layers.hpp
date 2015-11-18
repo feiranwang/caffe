@@ -13,8 +13,7 @@
 #include "caffe/neuron_layers.hpp"
 #include "caffe/proto/caffe.pb.h"
 
-#include "../ddf/src/message.h"
-
+#include "caffe/message.h"
 #include <zmq.h>
 #include <stdio.h>
 #include <unistd.h>

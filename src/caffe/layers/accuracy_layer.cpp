@@ -8,7 +8,7 @@
 #include "caffe/util/math_functions.hpp"
 #include "caffe/vision_layers.hpp"
 
-#include "../../ddf/src/message.h"
+#include "caffe/message.h"
 
 #include <zmq.h>
 #include <stdio.h>
@@ -84,8 +84,8 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 
   // printf ("Sending...\n");
-  zmq_send (requester, x, x->size(), 0);
-  zmq_recv (requester, x, x->size(), 0);
+  // zmq_send (requester, x, x->size(), 0);
+  // zmq_recv (requester, x, x->size(), 0);
   // printf ("Received...\n");
   
 
