@@ -8,7 +8,6 @@
 #include "caffe/data_layers.hpp"
 #include "caffe/data_reader.hpp"
 #include "caffe/proto/caffe.pb.h"
-#include <regex>
 
 
 namespace caffe {
@@ -108,14 +107,10 @@ void DataReader::Body::InternalThreadEntry() {
 void DataReader::Body::read_one(db::Cursor* cursor, QueuePair* qp) {
   Datum* datum = qp->free_.pop();
   // TODO deserialize in-place instead of copy?
-  //std::cout << "~~~~~~~~~" << cursor->key() << std::endl;
   
   datum->ParseFromString(cursor->value());
 
-  std::regex e ("[A-Z]");   // matches words beginning by "sub"
-  // std::cout << cursor->key() << " --> " << 
-  //   atoi(std::regex_replace (cursor->key(),e,"").c_str()) << std::endl;
-  datum->set_imgid(atoi(std::regex_replace (cursor->key(),e,"").c_str()));
+  datum->set_imgid(atoi(cursor->key().c_str()));
   
   qp->full_.push(datum);
 
