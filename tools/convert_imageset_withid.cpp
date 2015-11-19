@@ -13,6 +13,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <random>
 
 #include "boost/scoped_ptr.hpp"
 #include "gflags/gflags.h"
@@ -83,7 +84,11 @@ int main(int argc, char** argv) {
   if (FLAGS_shuffle) {
     // randomly shuffle data
     LOG(INFO) << "Shuffling data";
-    shuffle(lines.begin(), lines.end());
+    // make sure lines and ids are shuffled in the same order
+    auto engine1 = std::default_random_engine{};
+    auto engine2 = engine1;
+    std::shuffle(std::begin(lines), std::end(lines), engine1);
+    std::shuffle(std::begin(ids), std::end(ids), engine2);
   }
   LOG(INFO) << "A total of " << lines.size() << " images.";
 
@@ -137,7 +142,6 @@ int main(int argc, char** argv) {
     // int length = snprintf(key_cstr, kMaxKeyLength, "%08d_%s", line_id,
     //     lines[line_id].first.c_str());
     int length = snprintf(key_cstr, kMaxKeyLength, "%ld", ids[line_id]);
-
 
     // Put in db
     string out;
