@@ -143,6 +143,12 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     }
 
     caffe_gpu_memcpy(prob_.count()*sizeof(Dtype), bottom_diff, bottom[0]->mutable_gpu_diff());
+
+    // for (int i = 0; i < outer_num_; i++) {
+    //     for (int j = 0; j < 10; j++) {
+    //       LOG(INFO) << "sampler vid = " << imgids[i] << " label = " << bottom[1]->cpu_data()[i] << " diff = " << x->content[i * 10 + j];
+    //     }
+    //   }
     
     // if (propagate_down[0]) {
     //   Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
@@ -166,6 +172,12 @@ void SoftmaxWithLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     //     caffe_gpu_scal(prob_.count(), loss_weight / count, bottom_diff);
     //   } else {
     //     caffe_gpu_scal(prob_.count(), loss_weight / outer_num_, bottom_diff);
+    //   }
+    //   const Dtype *diff = bottom[0]->cpu_diff();
+    //   for (int i = 0; i < outer_num_; i++) {
+    //     for (int j = 0; j < 10; j++) {
+    //       LOG(INFO) << "caffe vid = " << imgids[i] << " label = " << bottom[1]->cpu_data()[i] << " diff = " << diff[i * 10 + j];
+    //     }
     //   }
     // }
 

@@ -141,7 +141,10 @@ int main(int argc, char** argv) {
     // sequential
     // int length = snprintf(key_cstr, kMaxKeyLength, "%08d_%s", line_id,
     //     lines[line_id].first.c_str());
-    int length = snprintf(key_cstr, kMaxKeyLength, "%ld", ids[line_id]);
+    // Note using line id as key is important, since the data will be accessed sequentially,
+    // and we want the data to be shuffled
+    int length = snprintf(key_cstr, kMaxKeyLength, "%08d_%ld", line_id, ids[line_id]);
+    // LOG(INFO) << key_cstr << " " << lines[line_id].second;
 
     // Put in db
     string out;

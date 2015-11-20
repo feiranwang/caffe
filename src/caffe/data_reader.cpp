@@ -110,7 +110,9 @@ void DataReader::Body::read_one(db::Cursor* cursor, QueuePair* qp) {
   
   datum->ParseFromString(cursor->value());
 
-  datum->set_imgid(atoi(cursor->key().c_str()));
+  // the key is in the form of number_imgid
+  int pos = cursor->key().find("_");
+  datum->set_imgid(atoi(cursor->key().substr(pos+1).c_str()));
   
   qp->full_.push(datum);
 
